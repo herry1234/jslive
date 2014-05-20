@@ -10,15 +10,9 @@ var mimeTypes = {
     "js": "text/javascript",
     "css": "text/css"
 };
-// if (process.argv.length < 3) {
-//     console.log('Usage: \n' + 'node stream-server.js <secret> [<stream-port> <websocket-port>]');
-//     process.exit();
-// }
 
-var STREAM_SECRET = process.argv[2],
-    STREAM_PORT = process.argv[3] || 8082,
-    WEBSOCKET_PORT = process.argv[4] || 8084,
-    STREAM_MAGIC_BYTES = 'jsmp'; // Must be 4 bytes
+var STREAM_PORT = process.argv[3] || 8082,
+    WEBSOCKET_PORT = process.argv[4] || 8084;
 
 //There is limitation on the size. The client canvas size is 640x480. it should be no more than
 var width = 640,
@@ -26,15 +20,18 @@ var width = 640,
 
 // Websocket Server
 var socketServer = new(require('ws').Server)({
-    port: WEBSOCKET_PORT
+    port: WEBSOCKET_PORT,
 });
-var ffmpeg = child_process.spawn("ffmpeg", [
-"-f", "video4linux2",
+var ffmpeg = child_process.spawn("avconv", [
+"-re",
 "-s", width + "x" + height, // size must be matched with Header sent to client.
+"-f", "video4linux2",
 "-i", "/dev/video0",
-"-f", "mpeg1video",
+"-profile:v","baseline",
+"-c:v", "libx264",
 "-b", "800K",
-"-r", "30",
+"-r", "24",
+"-f", "h264",
 "-" // Output to STDOUT
 ]);
 ffmpeg.on("error", function(e) {
@@ -50,18 +47,7 @@ ffmpeg.stdout.on('data', function(data) {
     });
 })
 socketServer.on('connection', function(socket) {
-    // Send magic bytes and video size to the newly connected socket
-    // struct { char magic[4]; unsigned short width, height;}
-    var streamHeader = new Buffer(8);
-    streamHeader.write(STREAM_MAGIC_BYTES);
-    streamHeader.writeUInt16BE(width, 4);
-    streamHeader.writeUInt16BE(height, 6);
-    socket.send(streamHeader, {
-        binary: true
-    });
-
     console.log('New WebSocket Connection (' + socketServer.clients.length + ' total)');
-
     socket.on('close', function(code, message) {
         console.log('Disconnected WebSocket (' + socketServer.clients.length + ' total)');
     });
@@ -78,7 +64,7 @@ socketServer.broadcast = function(data, opts) {
 var streamServer = require('http').createServer(function(req, res) {
 
     var uri = url.parse(req.url).pathname;
-    if(uri === "/") uri = "/index.html";
+    if(uri === "/") uri = "/h264.html";
     console.log("URI " + uri);
     var filename = path.join(process.cwd(), uri);
     console.log("filename " + filename);
@@ -102,29 +88,5 @@ var streamServer = require('http').createServer(function(req, res) {
     });
 }).listen(STREAM_PORT);
 
-// HTTP Server to accept incomming MPEG Stream
-// var streamServer = require('http').createServer( function(request, response) {
-// 	var params = request.url.substr(1).split('/');
-// 	width = (params[1] || 320)|0;
-// 	height = (params[2] || 240)|0;
-
-// 	if( params[0] == STREAM_SECRET ) {
-// 		console.log(
-// 			'Stream Connected: ' + request.socket.remoteAddress +
-// 			':' + request.socket.remotePort + ' size: ' + width + 'x' + height
-// 		);
-// 		request.on('data', function(data){
-// 			socketServer.broadcast(data, {binary:true});
-// 		});
-// 	}
-// 	else {
-// 		console.log(
-// 			'Failed Stream Connection: '+ request.socket.remoteAddress +
-// 			request.socket.remotePort + ' - wrong secret.'
-// 		);
-// 		response.end();
-// 	}
-// }).listen(STREAM_PORT);
-
-console.log('Listening on http://127.0.0.1:' + STREAM_PORT);
+console.log('Listening for server on http://127.0.0.1:' + STREAM_PORT + "/");
 console.log('Awaiting WebSocket connections on ws://127.0.0.1:' + WEBSOCKET_PORT + '/');

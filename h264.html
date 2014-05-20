@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=320, initial-scale=1"/>
+	<title>screencast using Broadway WS FFMPEG H264 streaming</title>
+	<style type="text/css">
+		body {
+			background: #333;
+			text-align: center;
+			margin-top: 10%;
+		}
+	</style>
+</head>
+<body>
+	<div id="stbscreen" width="640" height="480">
+	</div>
+
+	<script type="text/javascript" src="/public/vendor/broadway/sylvester.js"></script>
+	<script type="text/javascript" src="/public/vendor/broadway/glUtils.js"></script>
+	<script type="text/javascript" src="/public/vendor/broadway/util.js"></script>
+	<script type="text/javascript" src="/public/vendor/broadway/avc-codec.js"></script>
+	<script type="text/javascript" src="/public/vendor/broadway/avc.js"></script>
+	<script type="text/javascript" src="/public/vendor/broadway/canvas.js"></script>
+	<script type="text/javascript" src="nodecopter-stream.js"></script>
+
+	<script type="text/javascript">
+		// Show loading notice
+		var screen = document.getElementById('stbscreen');
+
+		var copterStream = new NodecopterStream(screen,{port:8084});
+	</script>
+</body>
+</html>

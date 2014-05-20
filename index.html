@@ -8,10 +8,10 @@
 			background: #333;
 			text-align: center;
 			margin-top: 10%;
-		}	
+		}
 	</style>
 </head>
-<body>		
+<body>
 	<canvas id="videoCanvas" width="640" height="480">
 		<p>
 			Please use a browser that supports the Canvas Element, like
@@ -29,7 +29,7 @@
 		ctx.fillText('Loading...', canvas.width/2-30, canvas.height/3);
 
 		// Setup the WebSocket connection and start the player
-		var client = new WebSocket( 'ws://171.71.46.197:8084/' );
+		var client = new WebSocket( 'ws://'+ window.document.location.hostname + ':8084/' );
 		var player = new jsmpeg(client, {canvas:canvas});
 	</script>
 </body>
