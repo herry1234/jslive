@@ -69,7 +69,7 @@ app.get('/video.webm',function(req,res,next){
                 "-f","video4linux2",          // Grab screen
                 "-i","/dev/video0",
                 "-r","30",              // Framerate
-                "-s","400x300",   // Capture size
+                "-s","800x600",   // Capture size
                 "-g","0",                // All frames are i-frames
                 "-me_method","zero",     // Motion algorithms off
                 "-flags2","fast",
